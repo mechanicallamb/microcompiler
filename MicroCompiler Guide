@@ -1,1 +1,15 @@
 This guide serves to document the basic structure of the compiler and the format of its input/output files.
+
+
+## .mias file format
+
+###The .mias file
+
+A file ending in the .mias extension will be interpretted as a **MI**crocompiler **AS**sembly file. This file will serve as the editable input to the microcompiler to be coverted into a binary file to be uploaded to a xilinx ARTYZ7 FPGA implementing the microcontroller. The compiled binary (.mbin) programs the instruction BRAM (used as ROM) and other future ROMs / Programmable memory
+
+###Header
+
+The Header of a .mias
+
+
+# .mbin file format

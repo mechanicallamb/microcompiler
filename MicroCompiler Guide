@@ -9,7 +9,33 @@ A file ending in the .mias extension will be interpretted as a **MI**crocompiler
 
 ###Header
 
-The Header of a .mias
+The Header of a .mias contains the implementation information of the microprocessor. These variables must be set to determine instruction-length, memory sizing, etc.
+
+FORMAT [FIELD] [VALUE] (ex. REGFILE_SIZE 8 [8 registers in the register file])
+- REGFILE_SIZE  
+- DATA_WIDTH   
+- OPCODE_WIDTH 
+- INSTRUC_EXTEN (value is alphabetical)
+
+####Header Fields
+REGFILE_SIZE : The number of registers inside the processors register file. The registers in the regfile as addressed by logbase2(REGFILE_SIZE).
+
+DATA_WIDTH : The bitwidth of all computation data. This has the additional consequence of determining the max range of addressable memory (at time of writing).
+
+OPCODE_WIDTH : The bitwidth of opcode field (number of available opcodes = (2^OPCODE_WIDTH) - 1
+
+INSTRUC_EXTEN : Any extensions to the number of instructions in the architecture. 
 
 
-# .mbin file format
+## .mbin file format
+
+The .mbin file is a simple binary file which contains compiled instructions in simple sequential order. Currently, there is no instruction re-ordering. The length of the binary instructions is determined by the the Header Fields in the following basic format.
+
+####MSB->[OPCODE_WIDTH] [logbase2(REGFILE_SIZE)] [DATA_WIDTH] [logbase2(REGFILE_SIZE)]
+
+If
+- OPCODE_LENGTH = 4
+- REGFILE_SIZE = 8
+- DATA_WIDTH = 8
+
+Then INSTRUCTION_WIDTH = 4 + 3 + 8 + 3 = 18. An example binary instruction would be MSB->010001010101100110 or 01|00 01|0 101|0110|0 110 where every nybble (yes, nYbble) is seperated by | and related bits are adjacent (even if seperated by a |) and a space between unrelated bits (Bits [17:14] = 01|00 is the opcode, with 2 bits in nybble 5 and 2 in nybble 4. These bits are related and so there is no space between them, even if seperated by a |. Looking back at nybble 4 Bits [15:12], bits 15 and 14 belong to the opcode, while bits 13 and 12 are 2 of the 3 bits used to access the regfile. Because bits 15:14 and 13:12 are not related, they are seperated by a space, despite being in the same nybble. As with before, regfile address bits 13:11 are adjacent, although seperated by a | because they are in seperate nybbles.)

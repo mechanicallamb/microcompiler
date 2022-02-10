@@ -18,3 +18,4 @@ Instructions
   1101  compc - compare register A with const C
   1110  compr - compare register A with register C
   1111  brif - branch if condition true
+  

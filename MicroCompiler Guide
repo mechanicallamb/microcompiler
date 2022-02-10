@@ -5,7 +5,8 @@ This guide serves to document the basic structure of the compiler and the format
 
 ###The .mias file
 
-A file ending in the .mias extension will be interpretted as a **MI**crocompiler **AS**sembly file. This file will serve as the editable input to the microcompiler to be coverted into a binary file to be uploaded to a xilinx ARTYZ7 FPGA implementing the microcontroller. The compiled binary (.mbin) programs the instruction BRAM (used as ROM) and other future ROMs / Programmable memory
+A file ending in the .mias extension will be interpretted as a **MI**crocompiler **AS**sembly file. This file will serve as the editable input to the microcompiler to be coverted into a binary file to be uploaded to a xilinx ARTYZ7 FPGA implementing the microcontroller. 
+The compiled binary (.mbin) programs the instruction BRAM (used as ROM) and other future ROMs / Programmable memory
 
 ###Header
 
@@ -29,7 +30,8 @@ INSTRUC_EXTEN : Any extensions to the number of instructions in the architecture
 
 ## .mbin file format
 
-The .mbin file is a simple binary file which contains compiled instructions in simple sequential order. Currently, there is no instruction re-ordering. The length of the binary instructions is determined by the the Header Fields in the following basic format.
+The .mbin file is a simple binary file which contains compiled instructions in simple sequential order. Currently, there is no instruction re-ordering. 
+The length of the binary instructions is determined by the the Header Fields in the following basic format.
 
 ####MSB->[OPCODE_WIDTH] [logbase2(REGFILE_SIZE)] [DATA_WIDTH] [logbase2(REGFILE_SIZE)]
 
@@ -38,4 +40,10 @@ If
 - REGFILE_SIZE = 8
 - DATA_WIDTH = 8
 
-Then INSTRUCTION_WIDTH = 4 + 3 + 8 + 3 = 18. An example binary instruction would be MSB->010001010101100110 or 01|00 01|0 101|0110|0 110 where every nybble (yes, nYbble) is seperated by | and related bits are adjacent (even if seperated by a |) and a space between unrelated bits (Bits [17:14] = 01|00 is the opcode, with 2 bits in nybble 5 and 2 in nybble 4. These bits are related and so there is no space between them, even if seperated by a |. Looking back at nybble 4 Bits [15:12], bits 15 and 14 belong to the opcode, while bits 13 and 12 are 2 of the 3 bits used to access the regfile. Because bits 15:14 and 13:12 are not related, they are seperated by a space, despite being in the same nybble. As with before, regfile address bits 13:11 are adjacent, although seperated by a | because they are in seperate nybbles.)
+Then INSTRUCTION_WIDTH = 4 + 3 + 8 + 3 = 18. An example binary instruction would be MSB->010001010101100110 or 01|00 01|0 101|0110|0 110 where every nybble (yes, nYbble)
+is seperated by | and related bits are adjacent (even if seperated by a |) and a space between unrelated bits
+
+(Bits [17:14] = 01|00 is the opcode, with 2 bits in nybble 5 and 2 in nybble 4. These bits are related and so there is no space between them, even if seperated by a |.
+Looking back at nybble 4 Bits [15:12], bits 15 and 14 belong to the opcode, while bits 13 and 12 are 2 of the 3 bits used to access the regfile. 
+Because bits 15:14 and 13:12 are not related, they are seperated by a space, despite being in the same nybble. 
+As with before, regfile address bits 13:11 are adjacent, although seperated by a | because they are in seperate nybbles.)

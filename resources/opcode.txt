@@ -1,0 +1,3 @@
+[INSTRUCTION_SET_A]
+add 1100
+add_c 0011

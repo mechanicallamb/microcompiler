@@ -2,15 +2,10 @@
 read data to the appropriate handlers for processing
 
 """
-
-import fnmatch""" for * wildcard"""
-import utils.TypeDict
+"""fnmatch for wildcard"""
+import fnmatch
+import typedict
 import sectors
-
-
-class Distributer:
-
-    def __init__():
         
         
 """A class to parse and distribute read information to appropriate handler classes
@@ -26,42 +21,37 @@ class Parser:
         heldLine = ""
         currentSectorObj = SectorObj()
 
-"""Hand the line to the appropriate sector object
-If there is no sector object, then return
-"""
+        """Hand the line to the appropriate sector object
+        If there is no sector object, then return
+        """
     def __distribute(self):
-        if not __sectorCheck(self):
-            return False
 
-    def getCurrentSector(self):
-        return self.currentSectorObj
-
-    def __checkFileType(filename):
-        
-    def __sectorCheck(self):
-
-
-"""Generate the objects to parse each sector
-The sectors will be dynamically created
-and given to the parsers sectorObject which is a parent class
-of each sector object
-"""
+        """Generate the objects to parse each sector
+        The sectors will be dynamically created
+        and given to the parsers sectorObject which is a parent class
+        of each sector object
+        """
     def __generateSectorObj(objType):
+        currentSectorObj = TypeDict.getObjectType(objType).__init__()
         
-        
-"""Begin parsing the .mias file
-Read a line of the file and hand the read lines to the appropriate sector 
-manager
+        """Begin parsing the .mias file
+        Read a line of the file and hand the read lines to the appropriate sector 
+        manager
 
-The file should be completely read by the end. Return true if complete
-"""
-    def beginParse(self, filename):
-        file = open(filename)
-        if not file.endswith(".mias") or file = 0:
+        The file should be completely read by the end. Return true if complete
+        """
+    def beginParse(self, miasFileName, sectorFilename):
+        file = open(miasFileName)
+        if not file.endswith(".mias") or not file:
             return False
         for readLine in file:
             self.heldLine = file.readLine()
             if self.heldLine.find("[*]") != -1:
-                __generateSectorObj(self.heldLine.strip('[]'))
-            self.distribute()
+               self. __generateSectorObj(self.heldLine.strip('[]'))
+            elif not heldLine:
+                continue
+            else:
+                self.currentSectorObj.processLine(self.heldLine)
         return True
+
+

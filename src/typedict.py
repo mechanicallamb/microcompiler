@@ -8,15 +8,15 @@ the path to the class to be instantiated
 
 class TypeDict:
 
-    def __init__():
-        typeList = {
+    self.__typeList = {
 
-            'HeaderHandler': HeaderHandler,
-            'DataHandler': DataHandler,
-            'ProgramHandler': ProgramHandler
+        'HeaderSectorObj': HeaderSectorObj,
+        'DataSectorObj': DataSectorObj,
+        'ProgramSectorObj': ProgramSectorObj
+    }
 
-
-        }
+    def __init__(self):
+        """empty so compiler doesnt complain"""
 
     def getObjectType(self, typename):
         return self.typeList[typename]

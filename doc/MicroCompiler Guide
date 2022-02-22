@@ -34,17 +34,31 @@ to be allocated for use in the program.
 The [PROGRAM] sector contains all of the code of the program. One instruction is
 allowed per line and required no terminating character.
 
+####Instruction format
+
+An instruction will have a format of [INSTRUCTION] [Destination], [Source A], [Source C]
+A space seperates the instruction name and the destination register and each register
+or constant after is seperated by a comma and space ', '
+
+ex: ADD REG1, REG2, $32
+The result is adding decimal 32 to the contents of register 2 and storing it into
+register 1
+
+####Routines
 Routines are contained pieces of code which are exectued sequentually. All program
 code must be inside a routine. Routines are defined by a unique, case sensitive name
 which is delimited by a colon ( ':', ie. main: )
 
+#####'main' Routine
 Every file must have a 'main:' routine. The main routine is read through sequentually and
 any routines called within 'main' are executed in the sequence in which they appear
 in 'main'. Routines may be defined anywhere within the program sector.
 
+######Supported constant formats
 To provide a constant value to an instruction, preceed a decimal value with $,
 a hex value with 0x, and binary with 0b
 
+####Comments
 Comments are C style. A line comment begins with '//', a block comment begins with
 '/*' and is terminated by '*/'. Any line delimited by '//' or on or between the beginning
 and end of a block comment will be ignored by the compiler
@@ -75,6 +89,56 @@ OPCODE_WIDTH : The bitwidth of opcode field
 (number of available opcodes = (2^OPCODE_WIDTH) - 1
 
 INSTRUC_EXTEN : Any extensions to the number of instructions in the architecture. 
+
+
+##Resources
+
+Resources are text files the compiler reads from to confirm or gather information
+encountered during parsing. An example is checking if an instruction used in the program
+actually exists.
+
+Resource files allow comments using C-style prefixes and block comments
+
+###Instruction.res
+
+The instruction resource file contains all of the instructions available
+
+####Instruction Sets
+
+The instructions are broken into instruction sets; each instruction set has a minimum
+opcode length. Attempting to call an instruction outside of the valid instruction sets
+specified in the HEADER sectors INSTRUC_EXTEN variable will result in a compilation error
+and the compiler will cease processing.
+
+#####How the compiler finds instructions
+
+All instructions exist under an instruction set header. The instructions in
+the base instruction set, A, are under a header [INSTRUCTION_SET_A]. When the compiler
+is seeking an instruction set, it searches the instruction sets specified in the 
+INSTRUC_EXTEN field.
+
+####Instruction format
+
+All instructions are stored in lower case with a space between the instruction name
+and the binary string representing the opcode for that instruction.
+
+Instructions allowing constants are suffixed by '_c'.
+
+The 'add' instruction only allows registers, while 'add_c' allows a user to enter a constant
+as an operand in the final source field, [Source C]
+
+####Notes
+
+Technically, a user is free and able to define their own instructions so long as those
+instructions do not overlap any instructions specified in the INSTRUC_EXTEN instruction
+sets.
+
+Simply create an instruction set header which does not conflict with any implemented 
+instruction set, paste [INSTRUCTION_SET_N] (where N is any single character letter or number)
+onto a new line and follow the standard instruction syntax. 
+
+A bad user can erase instructions from an implemented set and replace them with other
+instructions. But Im not your dad. 
 
 
 ## .mbin file format

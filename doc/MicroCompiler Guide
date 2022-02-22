@@ -1,61 +1,88 @@
-This guide serves to document the basic structure of the compiler and the format of its input/output files.
+This guide serves to document the basic structure of the compiler and the format 
+of its input/output files.
 
 
 ## .mias file format
 
 ###The .mias file
 
-A file ending in the .mias extension will be interpretted as a **MI**crocompiler **AS**sembly file. 
-This file will serve as the editable input to the microcompiler to be coverted into a binary file to be uploaded to a xilinx ARTYZ7 FPGA implementing the microcontroller. 
-The compiled binary (.mbin) programs the instruction BRAM (used as ROM) and other future ROMs / Programmable memory
+A file ending in the .mias extension will be interpretted as 
+a **MI**crocompiler **AS**sembly file. 
+This file will serve as the editable input to the microcompiler to be coverted into a 
+binary file to be uploaded to a xilinx ARTYZ7 FPGA implementing the microcontroller. 
+The compiled binary (.mbin) programs the instruction BRAM (used as ROM) 
+and other future ROMs / Programmable memory
 
-###Basic Structure
+###Sectors
+A .mias file is broken into Sectors, which define individual parts of the environment. 
+Each sector is encased in [...] brckets to signal to the 
+compiler that it has encountered a new sector. The basic sectors are described below.
 
-The structure of a mias file is broken into sectors which serve as markers for processing changes. A sector is marked by a
-all caps sector name enclosed in brackets [...] . 
+###[HEADER] Sector
+The header sector contains all of the metadata about the file and environment 
+for which the compiler is compiling.
 
-Comments follow C style conventions. A line comment is marked by //, a block comment marked by /* */
-
-The basic sectors are:
-
-####[HEADER]
-The [HEADER] sector contains file metadata and constraint information which define the available instructionset and capabilities of the processor
-the program is taretted at.
-
-####[MEMORY] (this currently has no effect on the program or processor)
-The [MEMORY] sector is used to reserve additional blocks of assignable memory which can be addressed by name in the [PROGRAM] sector
+The header allows a user to specifiy the available instruction set and other non-predefined
+variables affecting the compilation process, called Fields.
 
 
-####[PROGRAM]
-The [PROGRAM] sector contains all of the assembly for the program.
- 
+###[DATA] Sector (currently unimplemented, but required in file)
+The data sectors allows the user to define addressable sections of memory 
+to be allocated for use in the program.
+
+###[PROGRAM] Sector
+The [PROGRAM] sector contains all of the code of the program. One instruction is
+allowed per line and required no terminating character.
+
+Routines are contained pieces of code which are exectued sequentually. All program
+code must be inside a routine. Routines are defined by a unique, case sensitive name
+which is delimited by a colon ( ':', ie. main: )
+
+Every file must have a 'main:' routine. The main routine is read through sequentually and
+any routines called within 'main' are executed in the sequence in which they appear
+in 'main'. Routines may be defined anywhere within the program sector.
+
+To provide a constant value to an instruction, preceed a decimal value with $,
+a hex value with 0x, and binary with 0b
+
+Comments are C style. A line comment begins with '//', a block comment begins with
+'/*' and is terminated by '*/'. Any line delimited by '//' or on or between the beginning
+and end of a block comment will be ignored by the compiler
 
 ###Header
 
-The Header of a .mias contains the implementation information of the microprocessor. These variables must be set to determine instruction-length, memory sizing, etc.
+The Header of a .mias contains the implementation information of the microprocessor. 
+These variables must be set to determine instruction-length, memory sizing, etc.
 
-A field is immediately preceeded by # with no space between
+All fields must be immediately prefixed with a '#', with a space between the field and 
+the value.
 
-FORMAT: #[FIELD] [VALUE] (ex. REGFILE_SIZE 8 [8 registers in the register file])
+FORMAT #[FIELD] [VALUE] (ex. REGFILE_SIZE 8 [8 registers in the register file])
 - REGFILE_SIZE  
 - DATA_WIDTH   
-- OPCODE_WIDTH 
+- OPCODE_WIDTH %this may be redundent, as the instruction extension 
+would determine opcode widith%
 - INSTRUC_EXTEN (value is alphabetical)
 
 ####Header Fields
-REGFILE_SIZE : The number of registers inside the processors register file. The registers in the regfile as addressed by logbase2(REGFILE_SIZE).
+REGFILE_SIZE : The number of registers inside the processors register file. 
+The registers in the regfile as addressed by logbase2(REGFILE_SIZE).
 
-DATA_WIDTH : The bitwidth of all computation data. This has the additional consequence of determining the max range of addressable memory (at time of writing).
+DATA_WIDTH : The bitwidth of all computation data. This has the additional 
+consequence of determining the max range of addressable memory (at time of writing).
 
-OPCODE_WIDTH : The bitwidth of opcode field (number of available opcodes = (2^OPCODE_WIDTH) - 1
+OPCODE_WIDTH : The bitwidth of opcode field 
+(number of available opcodes = (2^OPCODE_WIDTH) - 1
 
 INSTRUC_EXTEN : Any extensions to the number of instructions in the architecture. 
 
 
 ## .mbin file format
 
-The .mbin file is a simple binary file which contains compiled instructions in simple sequential order. Currently, there is no instruction re-ordering. 
-The length of the binary instructions is determined by the the Header Fields in the following basic format.
+The .mbin file is a simple binary file which contains compiled instructions 
+in simple sequential order. Currently, there is no instruction re-ordering. 
+The length of the binary instructions is determined by the the 
+Header Fields in the following basic format.
 
 ####MSB->[OPCODE_WIDTH] [logbase2(REGFILE_SIZE)] [DATA_WIDTH] [logbase2(REGFILE_SIZE)]
 
@@ -64,10 +91,16 @@ If
 - REGFILE_SIZE = 8
 - DATA_WIDTH = 8
 
-Then INSTRUCTION_WIDTH = 4 + 3 + 8 + 3 = 18. An example binary instruction would be MSB->010001010101100110 or 01|00 01|0 101|0110|0 110 where every nybble (yes, nYbble)
-is seperated by | and related bits are adjacent (even if seperated by a |) and a space between unrelated bits
+Then INSTRUCTION_WIDTH = 4 + 3 + 8 + 3 = 18. An example binary instruction would 
+be MSB->010001010101100110 or 01|00 01|0 101|0110|0 110 where every nybble (yes, nYbble)
+is seperated by | and related bits are adjacent (even if seperated by a |) and 
+a space between unrelated bits
 
-(Bits [17:14] = 01|00 is the opcode, with 2 bits in nybble 5 and 2 in nybble 4. These bits are related and so there is no space between them, even if seperated by a |.
-Looking back at nybble 4 Bits [15:12], bits 15 and 14 belong to the opcode, while bits 13 and 12 are 2 of the 3 bits used to access the regfile. 
-Because bits 15:14 and 13:12 are not related, they are seperated by a space, despite being in the same nybble. 
-As with before, regfile address bits 13:11 are adjacent, although seperated by a | because they are in seperate nybbles.)
+(Bits [17:14] = 01|00 is the opcode, with 2 bits in nybble 5 and 2 in nybble 4. 
+These bits are related and so there is no space between them, even if seperated by a |.
+Looking back at nybble 4 Bits [15:12], bits 15 and 14 belong to the opcode, 
+while bits 13 and 12 are 2 of the 3 bits used to access the regfile. 
+Because bits 15:14 and 13:12 are not related, they are seperated by a space, 
+despite being in the same nybble. 
+As with before, regfile address bits 13:11 are adjacent, 
+although seperated by a | because they are in seperate nybbles.)

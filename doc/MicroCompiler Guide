@@ -52,7 +52,7 @@ which is delimited by a colon ( ':', ie. main: )
 #####'main' Routine
 Every file must have a 'main:' routine. The main routine is read through sequentually and
 any routines called within 'main' are executed in the sequence in which they appear
-in 'main'. Routines may be defined anywhere within the program sector.
+in 'main'. Routines may be defined anywhere within the program sector. Nested routines are called co-routines.
 
 ######Supported constant formats
 To provide a constant value to an instruction, preceed a decimal value with $,

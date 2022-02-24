@@ -1,14 +1,16 @@
-"""This is the main file for the microcompilers
+import sys
+from parse import Parser
 
-"""
+def main():
 
-
-import parse
-
-def main() -> int:
+    sys.stdout.write('Begin')
     parser = Parser()
-    success = parser.beginParse("test.mias")
+    success = parser.beginParse("testprogram.mias")
     if not success:
-        return -1
-    return 0
+        sys.stderr.write('Compilation failed.')
+        return
+    sys.stderr.write("Completed Successfully")
+    return
     
+if __name__ == '__main__':
+    main()

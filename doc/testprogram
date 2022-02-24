@@ -1,0 +1,15 @@
+[HEADER]
+#REGFILE_SIZE
+#DATA_WIDTH
+#OPCODE_WIDTH
+#INSTRUC_EXTEN
+
+[DATA]
+
+//empty
+
+
+[PROGRAM]
+
+main:
+	

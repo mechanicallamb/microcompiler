@@ -1,3 +1,17 @@
 [INSTRUCTION_SET_A]
-add 1100
-add_c 0011
+noop 0000
+str 0001
+load 0010
+mv 0011
+wr 0100
+add 0101
+add_c 0110
+sub_c 0111
+sub 1000
+lrs 1001
+not 1010
+and 1011
+ld_c 1100
+comp_c 1101
+comp 1110
+wr_c 1111

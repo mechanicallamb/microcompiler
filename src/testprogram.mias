@@ -1,0 +1,33 @@
+[HEADER]
+#REGFILE_SIZE 8
+#DATA_WIDTH 8
+#OPCODE_WIDTH 4
+#INSTRUC_EXTEN A
+
+[DATA]
+
+
+[PROGRAM]
+
+	str reg0, reg0, $1
+	str reg1, reg0, $2
+	str reg2, reg0, $3
+	str reg3, reg0, $4
+	str reg4, reg0, $5
+	str reg5, reg0, $6
+	str reg6, reg0, $7
+	str reg7, reg0, $8
+	add reg2, reg5, reg1
+	add reg3, reg2, reg7
+	add_c reg4, reg4, $10
+	sub reg1, reg3, reg2
+	sub_c reg5, reg6, $15
+	lsr reg4, reg4, reg0
+	not reg6, reg2, reg0
+	and reg5, reg1, reg3
+	wr reg0, reg1, reg4
+	mv reg7, reg6, reg0
+	ld reg3, reg0, reg4
+	ld_c reg2, reg0, $7
+	wr_c reg0, reg4, $2
+	ld_c reg1, reg0, $2

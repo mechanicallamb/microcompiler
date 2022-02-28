@@ -24,18 +24,16 @@ class Parser:
 
         """Hand the line to the appropriate sector object
         If there is no sector object, then return
-        """
-    def _distribute(self):
 
+        """
         """Generate the objects to parse each sector
         The sectors will be dynamically created
         and given to the parsers sectorObject which is a parent class
         of each sector object
         """
     def _generateSectorObj(self, objType):
-        self.currentSectorObj = getattr(sys.modules['sectors'], TypeDict.getObjectType(objType))()
-        sys.stderr.write('Created sector obj')
-        """ currentSectorObj = TypeDict.getObjectType(objType).__init__()"""
+        self.currentSectorObj = getattr(sys.modules['sectors'], \
+                                        TypeDict.getObjectType(objType))()
         
         """Begin parsing the .mias file
         Read a line of the file and hand the read lines to the appropriate sector 
@@ -49,15 +47,11 @@ class Parser:
             return False
         for readLine in miasFile:
            self.heldLine = readLine.strip()
-           sys.stderr.write(readLine +'\n')
            if(self.heldLine.find('[') >= 0 and self.heldLine.find(']') >= 0):
-               sys.stderr.write('creating sector object\n')
                self._generateSectorObj(self.heldLine.strip('[]\n'))
            elif not self.heldLine:
-               sys.stderr.write('line empty\n')
                continue
            else:
-               sys.stderr.write('Handing line to sector obj\n')
                self.currentSectorObj.processLine(self.heldLine)
         return True
 

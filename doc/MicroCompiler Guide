@@ -56,7 +56,7 @@ in 'main'. Routines may be defined anywhere within the program sector. Nested ro
 
 ######Supported constant formats
 To provide a constant value to an instruction, preceed a decimal value with $,
-a hex value with 0x, and binary with 0b
+a hex value with x, and binary with b
 
 ####Comments
 Comments are C style. A line comment begins with '//', a block comment begins with

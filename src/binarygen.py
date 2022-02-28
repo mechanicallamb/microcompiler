@@ -12,6 +12,7 @@ functions:
 import sys
 import math
 from keywords import GlobalDict
+from instruction import Instruction
 
 
 """The register Binary class objects
@@ -25,15 +26,15 @@ class BinaryGenerator:
     """Construtor (self, bitlength, hexmode)"""
     
     def __init__(self, hexmode):
-        self.bitlength = math.ceil(math.log2(int(GlobalDict.getValue('REGFILE_SIZE'))))
-        self.dataWidth = math.ceil(math.log2(int(GlobalDict.getValue('DATA_WIDTH'))))
+        self.regAddrWidth = math.ceil(math.log2(int(GlobalDict.getValue('REGFILE_SIZE'))))
+        self.dataWidth = int(GlobalDict.getValue('DATA_WIDTH'))
         self.hexmode = hexmode
         self.binOut = ""
 
 
     """Ensure that registerNum is representable by [REGISTER_SIZE] many bits"""
     def _verifyRegNumber(self, registerNum):
-        if(registerNum > (2**self.bitlength-1) or registerNum < 0):
+        if(registerNum > ((2**self.regAddrWidth)-1) or registerNum < 0):
             return False
         else:
             return True
@@ -42,18 +43,27 @@ class BinaryGenerator:
     """Ensure that registerNumber is representable by [DATA_WIDTH] many bits"""
 
     def _verifyDataBitWidth(self, data):
-        if(data > (2**self.dataWidth - 1)):
+        if(data > (2**self.dataWidth - 1) or data < 0):
             return False
         else:
             return True
-
     """Converts a number into a binary string
     If not in hex mode, convert to binary
+
+    Yes, im aware the tempbin assignments could be one line
     """
-    def _convertToBinary(self, data):
-        tempbin = bin(data)
+    def _convertConstToBinary(self, data):
+        bindata = bin(data)
+        tempbin = str(bindata)[2:]
+        tempbin = tempbin.zfill(self.dataWidth)
         return tempbin
 
+    def _convertRegisterToBinary(self, data):
+        bindata = bin(data)
+        tempbin = str(bindata)[2:]
+        tempbin = tempbin.zfill(self.regAddrWidth)
+        return tempbin
+        
     """Convert numbers in hex or binary and return them to be written
     generateBinary produces a string of hex values (if in hex mode) or 
     normal binary
@@ -67,7 +77,7 @@ class BinaryGenerator:
         if self._verifyRegNumber(data) == False:
             return False
         else:
-            self.binOut += self._convertToBinary(data)
+            self.binOut += self._convertRegisterToBinary(data)
         return True
     
     """Generates constant binary
@@ -79,67 +89,18 @@ class BinaryGenerator:
             if not self._verifyRegNumber(data):
                 return False
         else:
-            if not self._verifyBitWidth(data):
+            if not self._verifyDataBitWidth(data):
                 return False
-        binRep = self._convertToBinary(data)
+        binRep = self._convertConstToBinary(data)
         self.binOut += binRep
         return
 
-
-    """Turn an arbitrary sized list of strings into integers
-    Its gotten really annoying converting strings all over the place,
-    lets just solve that problem now instead of later
-    """
-    def _conditionLineToInt(self, stringList):
-        intList = []
-        for k in range(len(stringList)):
-            if stringList[k].find('$') >= 0:
-                strippedRegister = stringList[k].lstrip('$')
-            else:
-                strippedRegister = stringList[k].lstrip('reg')
-            intList.append(int(strippedRegister))
-        return intList
-
-        
-
-    """Convert an opcode to binary by reading opcode resource file
-    This function will look for the instruction keyword in a resource 
-    text file and grab the associated binary
-
-    Must use a predefined path to resource directory
-
-    It would be nice to have an index indicating which line to start searching
-    from just to avoid looping over stuff
-    """
-    def _generateOpcodeBinary(self, opcode):
-        
-        read = ""
-        isOpcode = 0
-        with open(PATH_TO_RES_DIR + "~git-repos/microcompiler/resources/opcode.txt", "rt")\
-             as opcodeFile:
-            for read in opcodeFile:
-                isOpcode = read.find(opcode, 0)
-                if isOpcode == -1:
-                    """next line"""
-                    continue
-                elif not read:
-                    """reached eof but not found"""
-                    opcodeFile.close()
-                    return False 
-                else:
-                    """found"""
-                    lineTuple = read.partition('=')
-            self.binOut += lineTuple[2]
-        return True
-
-
-    def generateLineBinary(self, opcode, lineList, isConst):
-        registerList = (lineList.strip()).split(', ')
-        regValues = tuple(self._conditionLineToInt(registerList))
-
-        """append the binary portion of the opcode"""
-        self.binOut += opcode[1]
+    def generateLineBinary_test(self, instruction):
+        regValues = []
+        for string in instruction.getOperands():
+            regValues.append(int(string.strip('reg$xb ')))
+        self.binOut += instruction.getOpcode()
+        self._generateRegisterBinary(regValues[1])
+        self._generateConstBinary(regValues[2], instruction.getIsConst())
         self._generateRegisterBinary(regValues[0])
-        self._generateConstBinary(regValues[1], isConst)
-        self._generateRegisterBinary(regValues[2])
         return self.binOut

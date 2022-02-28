@@ -7,9 +7,9 @@ def main():
     parser = Parser()
     success = parser.beginParse("testprogram.mias")
     if not success:
-        sys.stderr.write('Compilation failed.')
+        sys.stderr.write('Compilation Failed.\n')
         return
-    sys.stderr.write("Completed Successfully")
+    sys.stderr.write("MicroCompiler Completed Successfully\n")
     return
     
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ about an instruction
 """
 
 import sys
+from instruction import Instruction
 
 """Parent Class, left empty"""
 class SectorObj:
@@ -34,15 +35,14 @@ class HeaderSectorObj(SectorObj):
         return fieldList
 
     def processLine(self, readLine):
-        sys.stderr.write('Header Sector processing')
         fieldKV = self._getHeaderFieldValue(readLine)
         splitKV = fieldKV.split(' ')
         if not GlobalDict.setValue(splitKV[0], splitKV[1]):
             """better to throw error but whatever"""
             sys.stderr.write(splitKV[0] + ' variable of type ' + type(splitKV[1]) + 'does not exist.')
             return False
+        """i forget what i had here"""
         return True
-        
         
 
         
@@ -54,8 +54,9 @@ class DataSectorObj(SectorObj):
         self.globalDict = GlobalDict.getDict()
     """this class is dead for the moment"""
 
-    def processLin(self, readLine):
+    def processLine(self, readLine):
         """do nothing"""
+
 
 
 from binarygen import BinaryGenerator
@@ -74,45 +75,49 @@ class ProgramSectorObj(SectorObj):
         self.resourceFilename = "/home/sean/git-repos/microcompiler/resources/opcode.txt"
         self.resourceFile = open(self.resourceFilename)
         self.globalDict = GlobalDict.getDict()
+        self.currentInstruction = Instruction()
         """maybe create an instruction object"""
         constInstruction = False
         super().__init__()
 
-    def _breakCodeLine(self, readLine):
-        instructionLine = readLine.lower()
-        splitLine = instructionLine.split(' ',1)
-        return splitLine
 
-    """Ensure operands are appropriate for instruction
-    ex: there are no constants present in an instruction which
-    only uses registers
+    def getInstruction(self):
+        return self.currentInstruction
 
-    """
-    def _validateOperands(self, operandList):
+    def getResourceFile(self):
+        return self.resourceFile
 
-        """Check if an instruction exists in a resource file
-
-        If it does, return a tuple containing the instruction and the binary opcode
-        If it does not, return false and get mad
-        """
-    def _checkForInstruction(self, instructionString):
-        resourceLine = self.resourceFile.readline().strip()
-        if instructionString in resourceLine:
-            breakLine = resourceLine.partition(' ')
-            if '_c' in breakLine[0]:
-                self.constInstruction = True
-            else:
-                self.constInstruction = False
-            return breakLine
-        elif resourceLine == 0:
-            return breakLine == 0
+    """Check if the instruction takes a constant"""
+    def _checkIfConstInstruction(self):
+        if '_c' in self.getInstruction().getOpcode():
+            self.getInstruction().setIsConst(True)
         else:
+            self.getInstruction().setIsConst(False)
 
-            """Ensures that all operands are appropriate
+    def _seekInstruction(self):
+        self.resourceFile.seek(0,0)
+        rfile = self.resourceFile
+        for line in rfile:
+            if self.getInstruction().getOpcode() in line:
+                self.getInstruction().instruct = line.split(' ')[0].strip()
+                self.getInstruction().setOpcode(line.split(' ')[1].strip())
+                return 1
+        return 0
 
-            As of 1.0, only checks for $(decimal constant)
-            """
-        
+    """Break the instruction line into individual components
+    and remove all excess characters, assign members
+    """
+    def _conditionInstruction(self, line):
+        lineList = (line.strip()).split(' ', 1)
+        tempOpcode = lineList[0].strip(' ,')
+        tempOperands = lineList[1].split(',')
+
+        self.getInstruction().setOpcode(tempOpcode)
+        self.getInstruction().setOperand(tempOperands[0].strip(), 0)
+        self.getInstruction().setOperand(tempOperands[1].strip(), 1)
+        self.getInstruction().setOperand(tempOperands[2].strip(), 2)
+
+            
     def _hasSpecialFormatting(self, operandTuple):
         if '$' in operandTuple[0]:
             return -1
@@ -121,68 +126,62 @@ class ProgramSectorObj(SectorObj):
         if '$' in operandTuple[2]:
             return 1
         return 0
+
+    
+
+    """Ensure operands are appropriate for instruction
+    ex: there are no constants present in an instruction which
+    only uses registers
+
+    """
+
+
+    def _checkForConstant(self):
+        presentConstant = self._hasSpecialFormatting(self.getInstruction().getOperands())
+        if presentConstant == -1:
+            sys.stderr.write("Inappropriate constant operand in instruction.")
+            return False
+        elif presentConstant == 0:
+            if self.getInstruction().getIsConst() == 0:
+                self._seekInstruction()
+                return True
+            else:
+                self.getInstruction().setOpcode(self.getInstruction().getOpcode().rstrip('_c'))
+                """get the non-constant instruction"""
+                if self._seekInstruction() == 1:
+                    return True
+                else:
+                    sys.stderr.write("Non-Constant form of instruction not defined")
+                    return False
+        else:
+            
+            if self.getInstruction().getIsConst() == 1:
+                self._seekInstruction()
+                return True
+            else:
+                """get constant instruction"""
+                self.getInstruction().setOpcode(self.getInstruction().getOpcode() + '_c')
+                if self._seekInstruction == 1:
+                    return True
+                else:
+                    sys.stderr.write("Constant form of instruction not defined")
+                    return False
+
+        
     
     def processLine(self, readLine):
-        sys.stderr.write('Program sector obj processing line\n')
-        programLine = self._breakCodeLine(readLine)
-        if programLine[0] == 0 or programLine[1] == 0:
-            sys.stderr.write('Instruction has no instruction or destination register\n')
-            return False  
-        instruction = programLine[0]
-        operands = programLine[1]
-        
-        """try to open resource file"""
-        if not self.resourceFile:
-             if not self.resourceFile.open(self.resourceFilename):
-                 sys.stderr.write('Resource file ' + self.resourceFile + ' is not available\n')
-                 return False
-             
-        """check if instruction allows constants"""
-        conditionedInstruction = self._checkForInstruction(instruction)
-        if not conditionedInstruction:
-            sys.stderr.write('Attempted to pass constant operand when instruction'\
-            'does not allow constants\n')
+        """condition the instruction"""
+        self._conditionInstruction(readLine)
+        """check for if instruction is constant"""
+        self._checkIfConstInstruction()
+        """check if operands are constant"""
+        if not self._checkForConstant():
             return False
-        
-        """check if any of the operands on constants"""
-        hasFormatting = self._hasSpecialFormatting(operands)
-        if hasFormatting < 0:
-            """cannot have constant in dest or source a field"""
-            sys.stderr.write('Constant not allowed in destination or Source A field')
-            return False
-        elif hasFormatting != self.constInstruction:
-            """search for the constant or non-constant instruction"""
-            """reordering this with the assignment above would be smart"""
-            if '_c' in instruction:
-                instruction = instruction.removesuffix("_c")
-                conditionedInstruction = self._checkForInstruction(instruction)
-                if not conditionedInstruction:
-                    """no constant form of instruction"""
-                    sys.stderr.write('Instruction does not support constant operands.')
-                    return False
-            elif '_c'not in instruction:
-                instruction = instruction + "_c"
-                conditionedInstruction = self._checkForInstruction(instruction)
-                if not conditionedInstruction:
-                    """no non-constant form of instruction"""
-                    sys.stderr.write('Instruction only supports constant operands')
-                    return False
-            else:
-                """something went wrong"""
-                sys.stderr.write('Unknown error occurred')
-                return False
-        else:
-            """do nothing"""
-
-        sys.stderr.write('Generating binary...\n')
-        binaryGenerator = BinaryGenerator(False)
-        out = binaryGenerator.generateLineBinary\
-            (conditionedInstruction, operands, self.constInstruction)
+        binaryGenerator = BinaryGenerator(self.getInstruction().getIsConst())
+        out = binaryGenerator.generateLineBinary_test(self.getInstruction())
         
         outfile = open("instruction.mbin", 'a')
         outfile.write(out)
+        outfile.write('\n')
         outfile.close
         return True
-
-        
-    
